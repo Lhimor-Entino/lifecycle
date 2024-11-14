@@ -123,11 +123,11 @@ const NewCrModal:FC<Props> = ({program,open,onClose}) => {
         
        // return;
 
-        const href = route('changeMngt.store',{program_id:program.id,bus_req_doc_id:program.business_requirement_document.id})
+        const href = route('changeMngt.store',{program_id:program.id,bus_req_doc_id:program.project.business_requirement_document})
 
         post(href,{
             onSuccess:()=>{
-                onClose();
+                onClose(); 
                 toast.success('Change request added.');
             },
             onError: () => toast.error("An error occured, please try again later.")

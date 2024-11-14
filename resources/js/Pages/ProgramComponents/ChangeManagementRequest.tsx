@@ -1,6 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import { Table, TableBody, TableHead, TableHeader, TableRow,TableCell } from '@/Components/ui/table';
-import { ChangeManagementRequest, Program, UserAcceptance } from '@/types';
+import { ChangeManagementRequest, PageProps, Program, User, UserAcceptance } from '@/types';
 import {FC, useState} from 'react';
 import { format } from 'date-fns';
 import Hint from '@/Components/Hint';
@@ -10,6 +10,9 @@ import { useDeleteChangeManagementReq } from '@/Hooks/useDeleteChangeManagementM
 import { useChangeManagementModal } from '@/Hooks/useChangeManagementModal';
 import ChangerequestEmailNotification from './ChangeRequestEmailNotification';
 import { toast } from 'sonner';
+import useRestriction from '@/Hooks/useRestriction';
+import { usePage } from '@inertiajs/inertia-react';
+import { Page } from '@inertiajs/inertia';
 
 interface Props {
     program:Program;
@@ -21,7 +24,8 @@ const ChangeManagementRequest:FC<Props> = ({program}) => {
     const [showNewCr,setShowNewCr] = useState(false);
     const [showChangerequestEmail,setShowChangerequestEmail] = useState(false);
     const {change_requests} = program;
-
+    const {auth} = usePage<Page<PageProps>>().props
+    const {usePcRestriction} = useRestriction()
     const onEdit = () =>{
 
     }
@@ -37,7 +41,11 @@ const ChangeManagementRequest:FC<Props> = ({program}) => {
         let allTestPassed : UserAcceptance[] = []
 
          allTestPassed = program.user_acceptances.filter(ua => ua.program_id === program.id && ua.items.every(item=>item.status === 1));
-        if(allTestPassed.length < 1){
+
+console.log(program.user_acceptances)
+
+        console.log(allTestPassed)
+         if(allTestPassed.length < 1){
             toast.info("Cannot process the change management request without user acceptance. Ensure necessary approvals.");
             return ; // If any status is not "success", return false
         }
@@ -49,7 +57,7 @@ const ChangeManagementRequest:FC<Props> = ({program}) => {
     return (
         <>
             <div className='w-full h-full border rounded-lg flex flex-col gap-y-2.5 p-2.5'>
-                <Button onClick={()=>handleOpenCRF()} size='sm' className='ml-auto'>
+                <Button onClick={()=>handleOpenCRF()}   disabled={!usePcRestriction(auth.user.department)} size='sm' className='ml-auto'>
                     Add Change Request
                 </Button>
     
@@ -67,7 +75,7 @@ const ChangeManagementRequest:FC<Props> = ({program}) => {
                     <TableBody>
                         {
                             change_requests.map((c_req,index) => (
-                                 <ChangeRequestItem key={index} cr={c_req} onEdit={onEdit} onDelete={onDelete} onNotify={onNotify}/>
+                                 <ChangeRequestItem key={index} cr={c_req} onEdit={onEdit} onDelete={onDelete} onNotify={onNotify} restriction={usePcRestriction} c_user={auth.user}/>
                             ))
                         }
                     </TableBody>
@@ -86,10 +94,11 @@ interface ChangeRequestItemProps{
     onEdit:(cr:ChangeManagementRequest)=>void;
     onDelete:(cr:ChangeManagementRequest)=>void;
     onNotify:(cr:ChangeManagementRequest)=>void;
-   
+    c_user: User,
+    restriction: any
 }
 
-const ChangeRequestItem:FC<ChangeRequestItemProps> = ({cr,onEdit,onDelete,onNotify}) =>{
+const ChangeRequestItem:FC<ChangeRequestItemProps> = ({cr,onEdit,onDelete,onNotify,restriction,c_user}) =>{
     const {user} = cr;
     const fullName = `${user.first_name} ${user.last_name}`;
     const {onOpen} = useDeleteChangeManagementReq()
@@ -114,18 +123,18 @@ const ChangeRequestItem:FC<ChangeRequestItemProps> = ({cr,onEdit,onDelete,onNoti
             <TableCell className='text-right'>
                 <div className='flex items-center justify-end gap-x-2'>
                     <Hint label='Edit'>                        
-                        <Button onClick={()=>onEditOpen(cr.id)} variant='outline' size='icon'>
+                        <Button disabled={!restriction(user.department)} onClick={()=>onEditOpen(cr.id)} variant='outline' size='icon'>
                             <Pencil className='h-5 w-5' />
                         </Button>
                     </Hint>
                     <Hint label='Delete'>                        
-                        <Button variant='destructive' size='icon' onClick={() =>onOpen(cr.id)}>
+                        <Button disabled={!restriction(user.department)}  variant='destructive' size='icon' onClick={() =>onOpen(cr.id)}>
                             <Trash2 className='h-5 w-5' />
                         </Button>
                     </Hint>
                     
                     <Hint label='Notify Programmers'>                        
-                        <Button onClick={()=>onNotify(cr)} variant='outline' size='icon'>
+                        <Button disabled={!restriction(user.department)}  onClick={()=>onNotify(cr)} variant='outline' size='icon'>
                             <MailWarning className='h-5 w-5' />
                         </Button>
                     </Hint>

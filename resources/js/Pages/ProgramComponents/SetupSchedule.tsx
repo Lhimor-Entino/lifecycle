@@ -22,6 +22,7 @@ import axios from "axios";
 import { useDebounceValue } from "usehooks-ts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { Separator } from '@/Components/ui/separator';
+import useRestriction from '@/Hooks/useRestriction';
 
 
 interface Props {
@@ -33,15 +34,17 @@ interface Props {
 }
 
 const SetupSchedule:FC<Props> = ({program,isOpen,onClose,hanleOpenSetupScheduleEmail}) => {
+
+    const {usePcRestriction} = useRestriction()
+
     const [date, setDate] = useState<Date|undefined>(undefined);
     const [loading, setLoading] = useState(false);
-    
     const [openProgrammers, setOpenProgrammers] = useState(false);
     const [openTesters, setOpenTesters] = useState(false);
     const [openDepartments,setOpenDepartments] = useState(false);
     const [searchValue,setSearchValue] = useDebounceValue("", 500);
     const [search,setSearch] = useState('');
-    const {software_testers,software_manager,pc_head,setup_committee} = usePage<Page<PageProps>>().props
+    const {software_testers,software_manager,pc_head,setup_committee,auth} = usePage<Page<PageProps>>().props
     const [adEmail,setAdEmail] = useState("")
     const {data,setData,processing,post}  = useForm({
         programmers:[] as HrmsInfo[],
@@ -331,7 +334,7 @@ const SetupSchedule:FC<Props> = ({program,isOpen,onClose,hanleOpenSetupScheduleE
                     </Command> 
                 </div>  
                 <DialogFooter>
-                    <Button size='sm' onClick={onSubmit} disabled={loading || hasAdditionalAttendeeWithoutEmail()} >
+                    <Button size='sm' onClick={onSubmit} disabled={loading || hasAdditionalAttendeeWithoutEmail() || !usePcRestriction(auth.user.department)} >
                         {loading && <Loader2 className='h-5 w-5 animate-spin mr-2' />}
                         Set Setup Schedule
                     </Button>

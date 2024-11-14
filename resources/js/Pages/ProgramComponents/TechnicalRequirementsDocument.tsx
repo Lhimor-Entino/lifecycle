@@ -1,5 +1,5 @@
 import { Button } from '@/Components/ui/button';
-import { PageProps, Program, TechnicalRequirementsDocumentItem } from '@/types';
+import { PageProps, Program, TechnicalRequirementsDocumentItem, User } from '@/types';
 import {FC, useEffect, useState} from 'react';
 import TeqReqModal from './TechnicalRequirementsDocument/TeqReqModal';
 import { format } from 'date-fns';
@@ -16,6 +16,7 @@ import { Badge } from '@/Components/ui/badge';
 import { usePage } from '@inertiajs/inertia-react';
 import TegReqItemPreviousVersion from './TechnicalRequirementsDocument/TegReqItemPreviousVersion';
 import { ScrollArea } from '@/Components/ui/scroll-area';
+import useRestriction from '@/Hooks/useRestriction';
 
 interface Props {
     program:Program;
@@ -25,8 +26,9 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
     const [showNewTechnicalRequirementsDocument,setShowNewTechnicalRequirementsDocument] = useState(false);
     const [showNewTechnicalRequirementsItem,setShowNewTechnicalRequirementsItem] = useState(false);
     const [showNotifySetUpCommitee,setShowNotifySetUpCommitee] = useState(false);
-    const {trd_items} = usePage<Page<PageProps>>().props
-
+    const {trd_items,auth} = usePage<Page<PageProps>>().props
+        const {business_requirement_document : BRD} = program.project
+    const {usePcRestriction} = useRestriction()
     const handleNotifySetUpCommitee = () =>{
         if(!program.techinical_requirement_document) return;
         if(program.techinical_requirement_document.items.length<1) return toast.error('Cannot notify Setup Commitee. No TRD Items found');
@@ -49,58 +51,13 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
 
         return `${base_version}-v${version}`
     }
-    const handleCreateNewTrdItem = () => {
 
-        const hasfailedTrd = program.techinical_requirement_document.items.filter(ti => ti.test_case_status === "failed" && ti.is_active === 0)
-        console.log(hasfailedTrd);
-        
-        if (hasfailedTrd.length < 1){
-            toast(
-            <div className='flex items-center flex-col justify-end'>
-                <div className='flex items-center'>
-                    <InfoIcon className='h-8 w-8 mr-2' />
-                    <p>There are no failed TRD status. Are you sure to create New versions?</p>
-                </div>   
-                <Button size={"sm"} className='mt-3 w-full' onClick={() => {
-                         const new_trd_item:TechnicalRequirementsDocumentItem[] = program.techinical_requirement_document.items.filter(t => t.is_active === 0).map((ti,index) => ({    
-                            id:ti.id,
-                            teq_req_doc_id:ti.teq_req_doc_id,
-                            bus_req_doc_item_id:ti.bus_req_doc_item_id,
-                            req_description:ti.req_description,
-                            test_case_id: getNextVersion(ti.test_case_id),
-                            test_case_description:'',
-                            test_case_remarks:'',
-                            test_case_status:'ongoing',
-                            is_active:0
-                        }))
-                
-                        const old_trd_item = program.techinical_requirement_document.items.filter(t => t.is_active === 0).map((ti)=>(ti.id))
-                
-                        const postData = {
-                            new_trd_item : new_trd_item,
-                            trd_doc_id: program.techinical_requirement_document.id,
-                            old_trd_item: old_trd_item
-                        }
-                
-                  
-                         Inertia.post(route('tech_requirement.create_new_trd_test_case',JSON.stringify(postData)),{}, {
-                            onSuccess : () => {
-                                toast.success("New TRD versions created.")
-                            }
-                         });
-                  }}>
-                    Proceed
-                </Button>
-             </div>,
-              {
-                style: {backgroundColor: "#ffd60a"},     
-                duration: 5000,
-              });
-
-              return
+    const createNewTrdVersion = () => {
+        if(!program.techinical_requirement_document_item){
+           
+            return
         }
-       
-        const new_trd_item:TechnicalRequirementsDocumentItem[] = program.techinical_requirement_document.items.filter(t => t.is_active === 0).map((ti,index) => ({    
+        const new_trd_item:TechnicalRequirementsDocumentItem[] = program.techinical_requirement_document_item.filter(t => t.is_active === 0).map((ti,index) => ({    
             id:ti.id,
             teq_req_doc_id:ti.teq_req_doc_id,
             bus_req_doc_item_id:ti.bus_req_doc_item_id,
@@ -112,32 +69,66 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
             is_active:0
         }))
 
-        const old_trd_item = program.techinical_requirement_document.items.filter(t => t.is_active === 0).map((ti)=>(ti.id))
+        const old_trd_item = program.techinical_requirement_document_item.filter(t => t.is_active === 0).map((ti)=>(ti.id))
 
         const postData = {
             new_trd_item : new_trd_item,
-            trd_doc_id: program.techinical_requirement_document.id,
+            program_id: program.id,
+            trd_doc_id: program.project.business_requirement_document.id,
             old_trd_item: old_trd_item
         }
 
   
-         Inertia.post(route('tech_requirement.create_new_trd_test_case',JSON.stringify(postData)),{}, {
+         Inertia.post(route('tech_requirement.create_new_trd_test_case'),{
+            //@ts-ignore
+            postData}, {
             onSuccess : () => {
                 toast.success("New TRD versions created.")
             }
          });
+   
+    }
+    const handleCreateNewTrdItem = () => {
+        if(!program.techinical_requirement_document_item){
+            toast.error("No Trd")
+            return
+        }
+        const hasfailedTrd = program.techinical_requirement_document_item.filter(ti => ti.test_case_status === "failed" && ti.is_active === 0)
+        console.log(hasfailedTrd);
+        
+        if (hasfailedTrd.length < 1){
+            toast(
+            <div className='flex items-center flex-col justify-end'>
+                <div className='flex items-center'>
+                    <InfoIcon className='h-8 w-8 mr-2' />
+                    <p>There are no failed TRD status. Are you sure to create New versions?</p>
+                </div>   
+                <Button size={"sm"} className='mt-3 w-full' onClick={() => createNewTrdVersion()}>
+                    Proceed
+                </Button>
+             </div>,
+              {
+                style: {backgroundColor: "#ffd60a"},     
+                duration: 3000,
+              });
+
+              return
+        }
+       
+        createNewTrdVersion()
         
     }
 
-
+console.log("TECH",program)
     
     return (
         <>
 
             <div className='w-full h-full border rounded-lg flex items-center justify-center'>
+            
                 {
                     //!program.techinical_requirement_document ?(
-                        !program.business_requirement_document ?(
+                        !program.project.business_requirement_document ?(
                         <div className='flex flex-col gap-y-5'>
                             <h3 className='text-lg !font-bold'>
                                 No Technical Requirements Document
@@ -151,7 +142,7 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
                             <div className='h-full container mx-auto px-5 py-2.5 flex flex-col gap-y-0.5'>
                                 <div className='h-auto flex items-center justify-between gap-x-2'>
                                     <p className='flex-1 font-semibold text-lg tracking-wide'>
-                                        Technical Requirements Document
+                                        Technical Requirements Document  
                                     </p>
                            
                                     <div className='flex items-center gap-x-3.5 text-sm'>
@@ -161,7 +152,7 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
                                                     TRD No.
                                                 </p>
                                                 <p className='ml-2 font-bold'>
-                                                    {`BRD-000${program.business_requirement_document.id}-TRD-000${program.techinical_requirement_document.id}`}
+                                                    {`BRD-000${program.project.business_requirement_document.id}-TRD-000${program.project.business_requirement_document.id}`}
                                                    
                                                 </p>
                                             </div>
@@ -170,13 +161,13 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
                                                     Date:
                                                 </p>
                                                 <p>
-                                                    {format(new Date(program.business_requirement_document.created_at),'PP')}
+                                                    {format(new Date(program.project.business_requirement_document.created_at),'PP')}
                                                 </p>
                                             </div>
                                         </div>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>                                                
-                                                <Button size='icon' className='rounded-full' variant='ghost'>
+                                                <Button disabled={!usePcRestriction(auth.user.department)} size='icon' className='rounded-full' variant='ghost'>
                                                     <MoreVertical />
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -217,11 +208,11 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
                                     <div className='flex items-center justify-between gap-x-2'>
                                         <div className='w-1/2 flex items-center justify-between'>
                                             <p className='text-muted-foreground'>Accuracy</p>
-                                            <p>{program.business_requirement_document.accuracy}</p>
+                                            <p>{program.project.business_requirement_document.accuracy}</p>
                                         </div>
                                         <div className='w-1/2 flex items-center justify-between'>
                                             <p className='text-muted-foreground'>Output Format</p>
-                                            <p>{program.business_requirement_document.output_format}</p>
+                                            <p>{program.project.business_requirement_document.output_format}</p>
                                         </div>
                                     </div>                       
                                 </div>
@@ -254,7 +245,7 @@ const TechnicalRequirementsDocument:FC<Props> = ({program}) => {
                                     </TableHeader>
                                     <TableBody>
                                         {
-                                            (program.techinical_requirement_document.items||[]).map((item)=><TRQItem key={item.id} item={item} /> )
+                                            (program?.techinical_requirement_document_item||[]).map((item)=><TRQItem key={item.id} item={item} restriction={usePcRestriction} user={auth.user} /> )
                                         }
                                
 
@@ -285,9 +276,11 @@ export default TechnicalRequirementsDocument;
 
 interface TRQItemProps{
     item: TechnicalRequirementsDocumentItem;
+    restriction:any;
+    user: User
 }
 
-const TRQItem:FC<TRQItemProps> = ({item}) =>{
+const TRQItem:FC<TRQItemProps> = ({item,restriction,user}) =>{
     const [showModal,setShowModal] = useState(false);
     const [deleting,setDeleting] = useState(false);
     const [descriptions, setDescriptions] = useState<String[]>(["1","2","3"])
@@ -337,7 +330,7 @@ const TRQItem:FC<TRQItemProps> = ({item}) =>{
                 <TableCell className='!border flex items-center '>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>                        
-                            <Button disabled={deleting} variant='ghost'>
+                            <Button disabled={deleting ||!restriction(user.department) } variant='ghost'>
                                 <MoreHorizontal />
                             </Button>
                         </DropdownMenuTrigger>

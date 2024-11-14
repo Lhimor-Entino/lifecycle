@@ -30,6 +30,8 @@ interface Props {
     isOpen?:boolean;
     onClose:()=>void;
     bus_req_id:number;
+    program_id:number;
+    project_id:number;
     openTRDNotificationModal: () => void;
 }
 
@@ -46,7 +48,7 @@ interface Item {
     description: string;
     bus_req_doc_id: number;
   }
-const BusReqItemModal:FC<Props> = ({isOpen,onClose,bus_req_id,openTRDNotificationModal}) => {
+const BusReqItemModal:FC<Props> = ({isOpen,onClose,bus_req_id,openTRDNotificationModal,program_id,project_id}) => {
 
     const [items,setItems] = useState<Items[]>([]);
     const [loading,setLoading] = useState(false);
@@ -55,6 +57,8 @@ const BusReqItemModal:FC<Props> = ({isOpen,onClose,bus_req_id,openTRDNotificatio
     const [description,setDescription] = useState("")
 
     const {data,setData,processing,reset,post} = useForm({
+        project_id:project_id,
+        program_id : program_id,
         module:'',
         applicable_roles:'',
         description:'',

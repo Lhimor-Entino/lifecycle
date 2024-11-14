@@ -20,166 +20,179 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-interface Props{
-    selected_project?:Project;
+interface Props {
+    selected_project?: Project;
 }
 
-const ProjectList:FC<Props> = ({selected_project}) => {
-    const {projects,acknowledge_programs} = usePage<Page<PageProps>>().props;
-    const [expanded,setExpanded] = useLocalStorage<Record<number,boolean>>('expanded',{});  
+const ProjectList: FC<Props> = ({ selected_project }) => {
+    const { projects, acknowledge_programs, auth } = usePage<Page<PageProps>>().props;
+    const [expanded, setExpanded] = useLocalStorage<Record<number, boolean>>('expanded', {});
 
 
-    const onExpand = (id:number) => setExpanded(val=>({...val,[id]:!val[id]}));
+    const onExpand = (id: number) => setExpanded(val => ({ ...val, [id]: !val[id] }));
 
-    const navigate = (id:number) => {
-        Inertia.get(route('projects.show',{id}),{},{
-            onFinish:()=>setExpanded(val=>({...val,[id]:true}))
+    const navigate = (id: number) => {
+        Inertia.get(route('projects.show', { id }), {}, {
+            onFinish: () => setExpanded(val => ({ ...val, [id]: true }))
         })
     };
-    
-    const {onOpen} = useProjectModal();
 
-    const handleEdit = (id:number) =>  onOpen(projects.find(p=>p.id===id));
-    const [showNewProgramModal,setShowNewProgramModal] = useState(false);
-    const [activeId,setActiveId] = useState(0);
-    const openNewProgramModal = (id:number) =>{
+    const { onOpen } = useProjectModal();
+
+    const handleEdit = (id: number) => onOpen(projects.find(p => p.id === id));
+    const [showNewProgramModal, setShowNewProgramModal] = useState(false);
+    const [activeId, setActiveId] = useState(0);
+    const openNewProgramModal = (id: number) => {
         setActiveId(id);
         setShowNewProgramModal(true);
     }
+
+    console.log(acknowledge_programs)
     return (
         <>
             <div className="flex flex-col gap-y-1.5 pb-3.5 w-full">
+
                 {
-                    projects.map(({id,...document})=>(
-                        <div key={id}>
-                            <Item
-                                onEdit={handleEdit}
-                                id={id} 
-                                onClick={()=>navigate(id)}
-                                label={document.name}
-                                Icon={expanded[id]?FolderOpenIcon:FolderIcon}
-                                active={selected_project?.id===id}
-                                onExpand={()=>onExpand(id)}
-                                expanded={expanded[id]}
-                                updateDate={new Date(document.updated_at)}
-                                onNewProgram={openNewProgramModal}
-                                isForAcknowledge={false}
+                   auth.user.department.toLocaleLowerCase() === "it" ?
+                        <>
+                         
+                            <Separator />
+
+                            {
+
+                                acknowledge_programs.map(({ id, ...document }) => (
+                                    <div key={id}>
+                                        <Item
+                                            onEdit={handleEdit}
+                                            id={id}
+                                            onClick={() => navigate(id)}
+                                            label={document.name}
+                                            Icon={expanded[id] ? FolderOpenIcon : FolderIcon}
+                                            active={selected_project?.id === id}
+                                            onExpand={() => onExpand(id)}
+                                            expanded={expanded[id]}
+                                            updateDate={new Date(document.updated_at)}
+                                            onNewProgram={openNewProgramModal}
+                                            isForAcknowledge={true}
+                                        />
+                                    </div>
+                                ))
+                            }
+                        </>
+                        :
+                        projects.map(({ id, ...document }) => (
+                            <div key={id}>
+                              
+                                <Item
+                                    onEdit={handleEdit}
+                                    id={id}
+                                    onClick={() => navigate(id)}
+                                    label={document.name}
+                                    Icon={expanded[id] ? FolderOpenIcon : FolderIcon}
+                                    active={selected_project?.id === id}
+                                    onExpand={() => onExpand(id)}
+                                    expanded={expanded[id]}
+                                    updateDate={new Date(document.updated_at)}
+                                    onNewProgram={openNewProgramModal}
+                                    isForAcknowledge={false}
                                 />
-                        </div>
-                    ))
+                            </div>
+                        ))
                 }
-                <Separator />
-                {
-                    acknowledge_programs.map(({id,...document})=> (
-                        <div key={id}>
-                            <Item
-                                onEdit={handleEdit}
-                                id={id} 
-                                onClick={()=>navigate(id)}
-                                label={document.name}
-                                Icon={expanded[id]?FolderOpenIcon:FolderIcon}
-                                active={selected_project?.id===id}
-                                onExpand={()=>onExpand(id)}
-                                expanded={expanded[id]}
-                                updateDate={new Date(document.updated_at)}
-                                onNewProgram={openNewProgramModal}
-                                isForAcknowledge={true}
-                                />
-                        </div>
-                    ))
-                }
+
+
             </div>
-            
-            <NewProgramModal project_id={activeId} isOpen={showNewProgramModal} onClose={()=>setShowNewProgramModal(false)} />
+
+            <NewProgramModal project_id={activeId} isOpen={showNewProgramModal} onClose={() => setShowNewProgramModal(false)} />
         </>
     )
 }
 export default ProjectList;
 
 
-interface NewProgramModalProps{
-    isOpen?:boolean;
-    onClose:()=>void;
-    project_id:number;
+interface NewProgramModalProps {
+    isOpen?: boolean;
+    onClose: () => void;
+    project_id: number;
 }
 
-const NewProgramModal:FC<NewProgramModalProps>= ({project_id,isOpen,onClose}) =>{
-    const [searchValue,setSearchValue] = useDebounceValue("", 500);
-    const [search,setSearch] = useState('');
+const NewProgramModal: FC<NewProgramModalProps> = ({ project_id, isOpen, onClose }) => {
+    const [searchValue, setSearchValue] = useDebounceValue("", 500);
+    const [search, setSearch] = useState('');
     const [openProgrammers, setOpenProgrammers] = useState(false);
     const [openTesters, setOpenTesters] = useState(false);
-    const {user} = usePage<Page<PageProps>>().props.auth
+    const { user } = usePage<Page<PageProps>>().props.auth
     const buttonRef = useRef<HTMLButtonElement>(null); // Ref to store the button element
-    const onSearch:ChangeEventHandler<HTMLInputElement> = ({target}) =>{
-        const {value} = target
+    const onSearch: ChangeEventHandler<HTMLInputElement> = ({ target }) => {
+        const { value } = target
         setSearch(value);
         setSearchValue(value);
     }
-    const {isError,isLoading,data:employees,refetch,isFetched} = useQuery({
-        queryKey:['search',searchValue],  
-        queryFn: (search) => axios.get(route('hrms.search',{search:search.queryKey[1]})).then((res):HrmsInfo[]=>res.data),
-        enabled:false
+    const { isError, isLoading, data: employees, refetch, isFetched } = useQuery({
+        queryKey: ['search', searchValue],
+        queryFn: (search) => axios.get(route('hrms.search', { search: search.queryKey[1] })).then((res): HrmsInfo[] => res.data),
+        enabled: false
     });
 
-    const [openDepartments,setOpenDepartments] = useState(false);
-    
-    const {departments} = usePage<Page<PageProps>>().props;
+    const [openDepartments, setOpenDepartments] = useState(false);
 
-    const {data,setData,processing,post}  = useForm({
+    const { departments } = usePage<Page<PageProps>>().props;
+
+    const { data, setData, processing, post } = useForm({
         project_id,
-        name:'',
-        department:"",
-        
-        programmers:[] as HrmsInfo[],
-        testers:[] as HrmsInfo[],
+        name: '',
+        department: "",
+
+        programmers: [] as HrmsInfo[],
+        testers: [] as HrmsInfo[],
     });
 
 
-    const onSubmit:FormEventHandler<HTMLFormElement> = e =>{
+    const onSubmit: FormEventHandler<HTMLFormElement> = e => {
         e.preventDefault()
- 
-            if(!data.department) return toast.error('Please select a department.');
-            if(data.project_id===0) return toast.error('Sysmtem error, please refresh the page and try again.');
-            // if(data.programmers.length===0) return toast.error('Please add at least one programmer.');
-           // if(data.testers.length===0) return toast.error('Please add at least one tester.');
-            post(route('programs.new'),{
-                onError:e=>{
-                    console.error(e);
-                    toast.error('An error occured while creating the program. Please try again.');
-                },
-                onSuccess:()=>{
-                    toast.success('Program created successfully.');
-                    onClose();
-                },
-                preserveState:false
-            });    
+
+        if (!data.department) return toast.error('Please select a department.');
+        if (data.project_id === 0) return toast.error('Sysmtem error, please refresh the page and try again.');
+        // if(data.programmers.length===0) return toast.error('Please add at least one programmer.');
+        // if(data.testers.length===0) return toast.error('Please add at least one tester.');
+        post(route('programs.new'), {
+            onError: e => {
+                console.error(e);
+                toast.error('An error occured while creating the program. Please try again.');
+            },
+            onSuccess: () => {
+                toast.success('Program created successfully.');
+                onClose();
+            },
+            preserveState: false
+        });
     }
 
-    const addProgrammer = (user:HrmsInfo) => {
-        if(data.programmers.findIndex(({idno})=>idno===user.idno)>-1) return;
-        setData(val=>({...val,programmers:[...val.programmers,user]}));
+    const addProgrammer = (user: HrmsInfo) => {
+        if (data.programmers.findIndex(({ idno }) => idno === user.idno) > -1) return;
+        setData(val => ({ ...val, programmers: [...val.programmers, user] }));
     }
 
-    const addTester = (user:HrmsInfo) => {
-        if(data.testers.findIndex(({idno})=>idno===user.idno)>-1) return;
-        setData(val=>({...val,testers:[...val.testers,user]}));
+    const addTester = (user: HrmsInfo) => {
+        if (data.testers.findIndex(({ idno }) => idno === user.idno) > -1) return;
+        setData(val => ({ ...val, testers: [...val.testers, user] }));
     }
 
-    useEffect(()=>{
-        if(searchValue.length<3) return;
+    useEffect(() => {
+        if (searchValue.length < 3) return;
         refetch();
-    },[searchValue]);
+    }, [searchValue]);
 
 
-    useEffect(()=>{
-        if(!isOpen) return;
-        setData(val=>({...val,project_id,name:'',department:''}));
-    },[project_id,isOpen]);
+    useEffect(() => {
+        if (!isOpen) return;
+        setData(val => ({ ...val, project_id, name: '', department: '' }));
+    }, [project_id, isOpen]);
 
 
-    useEffect(()=>{
-        setData("department",user.department)
-    },[data.name])
+    useEffect(() => {
+        setData("department", user.department)
+    }, [data.name])
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose} modal>
@@ -189,21 +202,21 @@ const NewProgramModal:FC<NewProgramModalProps>= ({project_id,isOpen,onClose}) =>
                     <DialogDescription>
                         Enter Program Details
                     </DialogDescription>
-         
+
                 </DialogHeader>
                 <form onSubmit={onSubmit} id='new_program' className="flex flex-col gap-y-2.5">
                     <div className="flex flex-col gap-y-1.5">
                         <Label htmlFor="name" >
                             Name
                         </Label>
-                        <Input required value={data.name} onChange={({target})=>{setData('name',target.value);}} autoComplete='off' autoFocus disabled={processing} id="name"  />
+                        <Input required value={data.name} onChange={({ target }) => { setData('name', target.value); }} autoComplete='off' autoFocus disabled={processing} id="name" />
                     </div>
                     <div className="flex flex-col gap-y-1.5">
                         <Label htmlFor="username" >
                             Department
                         </Label>
                         <p className=" font-semibold text-xs mt-2 bg-slate-100 rounded-sm p-3 shadow-sm-">{user.department}</p>
-                
+
                     </div>
                     {/* <div className="space-y-1.5">
                         <Label >Programmers</Label>
@@ -289,8 +302,8 @@ const NewProgramModal:FC<NewProgramModalProps>= ({project_id,isOpen,onClose}) =>
                 <DialogFooter>
                     <Button form='new_program' type="submit" disabled={processing}>
                         {processing && <Loader2 className="h-5 w-5 mr-2 animate-spin" />}
-                        Save changes                    
-                         </Button>
+                        Save changes
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

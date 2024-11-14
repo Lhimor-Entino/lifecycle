@@ -20,10 +20,12 @@ import axios from "axios";
 import { toast } from "sonner";
 import TestPlanEmail from "@/Pages/ProgramComponents/TestPlanEmail";
 import NoEmailAlert from "./NoEmailAlert";
+import useRestriction from "@/Hooks/useRestriction";
 
 const ProgramModal = () => {
+    const {usePcRestriction,useTesterRestriction} = useRestriction()
     const {isOpen,onClose,program,project_id} = useProgramModal();
-    const {programs} = usePage<Page<PageProps>>().props
+    const {programs,auth} = usePage<Page<PageProps>>().props
     const [openProgrammers, setOpenProgrammers] = useState(false);
     const [openTesters, setOpenTesters] = useState(false);
     const [openDepartments,setOpenDepartments] = useState(false);
@@ -336,15 +338,12 @@ const ProgramModal = () => {
                     <Button variant='outline' disabled={processing} onClick={onClose}>
                         Cancel
                     </Button>   
-                    <Button form="program" disabled={processing} type="submit">
+                    <Button form="program" disabled={processing || !useTesterRestriction(auth.user.department,auth.user.position)} type="submit">
                         {processing? <Loader2 className="animate-spin h-5 w-5" />:'Save Test Plan'}
                     </Button>                    
                 </SheetFooter>
             </SheetContent>
         </Sheet>
-        
-
-
         {
          showTestPlanEmail && submitted && <TestPlanEmail program={programs} isOpen={showTestPlanEmail} onClose={()=>setShowTestPlanEmail(false)} setSubmitted={setSubmitted} /> 
         }

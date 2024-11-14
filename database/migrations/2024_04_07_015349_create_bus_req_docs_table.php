@@ -15,7 +15,7 @@ class CreateBusReqDocsTable extends Migration
     {
         Schema::create('bus_req_docs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('program_id')->index();
+            $table->unsignedBigInteger('project_id')->index();
             $table->unsignedBigInteger('user_id')->index();
             $table->string('volume');
             $table->string('turnaround');
@@ -24,7 +24,7 @@ class CreateBusReqDocsTable extends Migration
             $table->tinyInteger('is_active')->default(0); // 0 -> Active
             $table->timestamps();
 
-            $table->foreign('program_id')->references('id')->on('programs')->onDelete('cascade');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }

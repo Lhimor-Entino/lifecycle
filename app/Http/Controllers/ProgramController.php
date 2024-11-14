@@ -194,13 +194,12 @@ $curl = curl_init();
      */
     public function show($id)
     {
-        $program = Program::with(['project', 'business_requirement_document','business_requirement_document_history', 'techinical_requirement_document', 'program_setup_schedule','change_requests','additional_attendees'])->where('id', $id)->firstOrFail();
-        
+      $program = Program::with(['project','techinical_requirement_document_item','business_requirement_document_item', 'program_setup_schedule','change_requests','additional_attendees'])->where('id', $id)->firstOrFail();
+    // $program = Program::with(['project', 'techinical_requirement_document', 'program_setup_schedule','change_requests','additional_attendees']);
+
         Inertia::share('selected_program', $program);
         Inertia::share('programs',$program);
-        return Inertia::render('Program', [
-            'program' => $program
-        ]);
+
     }
 
     /**

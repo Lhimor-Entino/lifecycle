@@ -25,7 +25,7 @@ const BusReqModal:FC<Props> =  ({program,isOpen,onClose}) => {
     });
     const onSubmit:FormEventHandler<HTMLFormElement> = e => {
         e.preventDefault();
-        const href = program.business_requirement_document ? route('business_requirement.update',{id:program.business_requirement_document.id}) : route('business_requirement.store');
+        const href = program.project.business_requirement_document ? route('business_requirement.update',{id:program.project.business_requirement_document.id}) : route('business_requirement.store');
         post(href,{
             onSuccess:()=>onClose(),
             onError:e=>{
@@ -57,7 +57,7 @@ const BusReqModal:FC<Props> =  ({program,isOpen,onClose}) => {
                         Business Requirements Document
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        {program.business_requirement_document?'Update':'Create'} Business Requirements Document for {program.name}.
+                        {program.business_requirement_document?'Update':'Create'} Business Requirements Document .
                      
                         {program.change_requests.length > 0 ? 
                         <div className='flex flex-col mt-3'>

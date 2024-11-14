@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { CheckIcon, ChevronLeftIcon, ChevronsUpDownIcon, Command, DownloadCloud, Lightbulb, LightbulbOff, MenuIcon, PlusCircle, RecycleIcon, Search } from 'lucide-react';
+import { CheckIcon, ChevronLeftIcon, ChevronsUpDownIcon, Command, DownloadCloud, Lightbulb, LightbulbOff, MailCheck, MailCheckIcon, MenuIcon, PlusCircle, RecycleIcon, Search } from 'lucide-react';
 import {ElementRef, FC, MouseEventHandler, useEffect, useRef, useState} from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -14,14 +14,18 @@ import NavBar from '../NavBar';
 import ProjectList from '../ProjectList';
 import Trashbox from '../Trashbox';
 import { ScrollArea } from '../ui/scroll-area';
-import { Inertia } from '@inertiajs/inertia';
+import { Inertia, Page } from '@inertiajs/inertia';
 import { toast } from 'sonner';
+import useRestriction from '@/Hooks/useRestriction';
+import { usePage } from '@inertiajs/inertia-react';
 
 interface Props {
     selected_project?:Project;
 }
 
 const Navigation:FC<Props> = ({selected_project}) => {
+    const {usePcRestriction} = useRestriction() 
+    const {auth} = usePage<Page<PageProps>>().props
     const {onOpen:OpenProjectModal} = useProjectModal();
     const isMobile = useMediaQuery("(max-width: 768px)");
     const isResizingRef = useRef(false);
@@ -119,8 +123,16 @@ const Navigation:FC<Props> = ({selected_project}) => {
                     <UserItem />
                     <Item onClick={onOpen} label='Search' Icon={Search} isSearch />
                     {/* <Item onClick={()=>setTheme(theme==='dark'?'light':'dark')} label='Toggle Dark Mode' Icon={theme==='dark'?Lightbulb:LightbulbOff}  /> */}
-                    <Item onClick={()=>OpenProjectModal()} label='New Project' Icon={PlusCircle} />
-                    <Item onClick={sync} label='Sync Departments From HRMS' Icon={DownloadCloud} />
+                   
+{
+                   usePcRestriction(auth.user.department) && 
+                   <>
+                     <Item onClick={()=>OpenProjectModal()} label='New Project' Icon={PlusCircle} />
+                     <Item onClick={sync} label='Sync Departments From HRMS' Icon={DownloadCloud} />
+                   </>
+                 
+
+}                   
                 </div>
                 
                 <p className="text-center text-xl font-bold tracking-tight border-b border-b-muted-foreground/30 mt-3.5">Project List</p>
@@ -128,6 +140,7 @@ const Navigation:FC<Props> = ({selected_project}) => {
                     <ProjectList selected_project={selected_project} />   
                 </ScrollArea >
                 <div className=' h-auto pb-3.5'>
+                    
                     <Popover>
                         <PopoverTrigger className='w-full mt-3.5'>
                             <Item label='Archives' Icon={RecycleIcon} />
@@ -135,6 +148,7 @@ const Navigation:FC<Props> = ({selected_project}) => {
                         <PopoverContent className='p-0 w-72' side={isMobile?'bottom':'right'}>
                             <Trashbox selected_project={selected_project} />
                         </PopoverContent>
+                 
                     </Popover>
                 </div>
                 <div onMouseDown={handleMouseDown} onClick={resetWidth} className='opacity-0 hover:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-primary right-0 top-0' />

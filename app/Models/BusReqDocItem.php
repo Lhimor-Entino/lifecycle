@@ -8,9 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class BusReqDocItem extends Model
 {
     use HasFactory;
-    protected $fillable = ['bus_req_doc_id','guid','module','applicable_roles','description'];
-
-    
-
+    protected $fillable = ['program_id', 'bus_req_doc_id', 'guid', 'module', 'applicable_roles', 'description'];
 
 }

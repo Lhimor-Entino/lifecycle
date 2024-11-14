@@ -96,6 +96,7 @@ const TRDNotificationModal:FC<Props> = ({isOpen,onClose,program}) => {
             <DialogContent className='max-w-[90vw] max-h-[95vh] h-full flex flex-col space-x-1.5'>
                 <div className='w-full flex flex-col space-y-1.5'>
                     <p className='font-semibold text-lg'>TRD Notification</p>
+                    {/* {JSON.stringify(program.business_requirement_document)} */}
                     <Separator />
                     <div className='flex space-x-1.5 items-center justify-end'>
                         <Label htmlFor='subject' className=''>Subject:</Label>

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TeqReqDocItem extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
     protected $appends = ['req_description'];
 
@@ -21,8 +22,8 @@ class TeqReqDocItem extends Model
         return $this->belongsTo(BusReqDocItem::class,'bus_req_doc_item_id');
     }
 
-    
 
+   
     public function getReqDescriptionAttribute()
     {
         

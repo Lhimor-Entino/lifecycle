@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 class BusReqDoc extends Model
 {
     use HasFactory;
-    protected $fillable = ['program_id','user_id','volume','turnaround','accuracy','output_format'];
+    protected $fillable = ['project_id','user_id','volume','turnaround','accuracy','output_format'];
     protected $with = ['items','user'];
     // protected static function boot()
     // {
@@ -25,8 +25,8 @@ class BusReqDoc extends Model
 
     //     static::addGlobalScope(new StatusScope);
     // }
-    public function program(){
-        return $this->belongsTo(Program::class);
+    public function project(){
+        return $this->belongsTo(Project::class);
     }
     public function items(){
         return $this->hasMany(BusReqDocItem::class);

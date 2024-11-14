@@ -19,7 +19,7 @@ class ProjectController extends Controller
     public function index()
     {
         // 
-    
+
     }
 
     /**
@@ -40,36 +40,48 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        $project = Project::create([
-            'user_id'=>$request->user()->id,
-            'name'=>$request->name,
-            'client_name'=>$request->client_name
-        ]);
 
+      
+        $project = Project::create([
+            'user_id' => $request->user()->id,
+            'name' => $request->name,
+            'client_name' => $request->client_name
+        ]);
+        $data = [
+            "project_id" => $project->id,
+            "volume" => $request->volume,
+            "turnaround" => $request->turnaround,
+            "accuracy" => $request->accuracy,
+            "output_format" => $request->output_format,
+        ];
+ 
+        $busReq = app(BusinessRequirementController::class);
+    
+        $busReq->createBusReqDocs($data,$request->user()->id);
         $coordintors = $request->coordinators;
-        foreach($coordintors as $coordinator){
-            
-            
-            
-            $user=User::firstOrCreate(
-            ['company_id'=>$coordinator['idno']],
-            [
-                'first_name'=>$coordinator['first_name'],
-                'last_name'=>$coordinator['last_name'],
-                'password'=>bcrypt('password'),
-                'position'=>$coordinator['job_job_title'],
-                'department'=>$coordinator['department'],                
-                'email'=>$coordinator['work_email'],
-            ]);
+        foreach ($coordintors as $coordinator) {
+
+
+
+            $user = User::firstOrCreate(
+                ['company_id' => $coordinator['idno']],
+                [
+                    'first_name' => $coordinator['first_name'],
+                    'last_name' => $coordinator['last_name'],
+                    'password' => bcrypt('password'),
+                    'position' => $coordinator['job_job_title'],
+                    'department' => $coordinator['department'],
+                    'email' => $coordinator['work_email'],
+                ]
+            );
 
             ProjectCoordinator::create([
-                'project_id'=>$project->id,
-                'user_id'=>$user->id
+                'project_id' => $project->id,
+                'user_id' => $user->id
             ]);
         }
 
         return redirect()->back();
-
     }
 
     /**
@@ -78,10 +90,10 @@ class ProjectController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id=0)
+    public function show($id = 0)
     {
-        return Inertia::render('Project',[
-            'selected_project'=>Project::with(['programs'])->where('id',$id)->firstOrFail(),
+        return Inertia::render('Project', [
+            'selected_project' => Project::with(['programs'])->where('id', $id)->firstOrFail(),
         ]);
     }
 
@@ -108,36 +120,37 @@ class ProjectController extends Controller
         $project = Project::findOrFail($id);
 
         $project->update([
-            'name'=>$request->name,
-            'client_name'=>$request->client_name
+            'name' => $request->name,
+            'client_name' => $request->client_name
         ]);
 
         //delete all coordinators
-        $previous_coordinators = ProjectCoordinator::where('project_id',$project->id)->get();
-        $previous_coordinators->each(function($coordinator){
+        $previous_coordinators = ProjectCoordinator::where('project_id', $project->id)->get();
+        $previous_coordinators->each(function ($coordinator) {
             $coordinator->delete();
         });
 
         //replace with new coordinators
         $coordinators = $request->coordinators;
-        foreach($coordinators as $coordinator){
-            
-            
-            
-            $user=User::firstOrCreate(
-            ['company_id'=>$coordinator['idno']],
-            [
-                'first_name'=>$coordinator['first_name'],
-                'last_name'=>$coordinator['last_name'],
-                'password'=>bcrypt('password'),
-                'position'=>$coordinator['job_job_title'],
-                'department'=>$coordinator['department'],
-                'email'=>$coordinator['work_email'],
-            ]);
+        foreach ($coordinators as $coordinator) {
+
+
+
+            $user = User::firstOrCreate(
+                ['company_id' => $coordinator['idno']],
+                [
+                    'first_name' => $coordinator['first_name'],
+                    'last_name' => $coordinator['last_name'],
+                    'password' => bcrypt('password'),
+                    'position' => $coordinator['job_job_title'],
+                    'department' => $coordinator['department'],
+                    'email' => $coordinator['work_email'],
+                ]
+            );
 
             ProjectCoordinator::create([
-                'project_id'=>$project->id,
-                'user_id'=>$user->id
+                'project_id' => $project->id,
+                'user_id' => $user->id
             ]);
         }
 
@@ -161,7 +174,7 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
         $project->update([
-            'is_archived'=>1
+            'is_archived' => 1
         ]);
         return redirect()->back();
     }
@@ -170,7 +183,7 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
         $project->update([
-            'is_archived'=>0
+            'is_archived' => 0
         ]);
         return redirect()->back();
     }
@@ -179,7 +192,7 @@ class ProjectController extends Controller
     {
         $project = Project::findOrFail($id);
         $project->update([
-            'name'=>$request->name
+            'name' => $request->name
         ]);
         return redirect()->back();
     }

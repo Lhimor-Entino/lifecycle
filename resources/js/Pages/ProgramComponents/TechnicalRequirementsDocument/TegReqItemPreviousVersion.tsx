@@ -97,7 +97,7 @@ const TegReqItemPreviousVersion = (props:Props) => {
                 </Button>
              </SheetTrigger>
         
-          <SheetContent style={{zIndex: 1000}} >
+          <SheetContent style={{zIndex: 1000}} className=" overflow-auto" >
             <SheetHeader>
               <SheetTitle>List of Versions</SheetTitle>
               <SheetDescription>
@@ -129,7 +129,7 @@ const TegReqItemPreviousVersion = (props:Props) => {
                 <CardDescription>Inputted data after testing</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 border-none">
-                    
+                  
                     {trdData?.is_active === 1 ?    <div>
                     <div className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
                     <span className="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />

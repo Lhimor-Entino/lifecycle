@@ -87,15 +87,19 @@ class TechnicalRequirementController extends Controller
         return redirect()->back();
     }
 
-    public function create_new_trd_test_case($postData){
+   // public function create_new_trd_test_case($postData){
         
+    public function create_new_trd_test_case(Request $request){
 
-        $data = json_decode($postData,true);
+     
+        // $data = json_decode($postData,true);
         // dd($data['new_trd_item'][0]['test_case_id']);
-        foreach ($data['new_trd_item'] as $val){
+        $postData = $request['postData'];
+        foreach ($postData['new_trd_item'] as $val){
 
        
             TeqReqDocItem::create([
+                'program_id'=> $postData['program_id'],
                 'bus_req_doc_item_id' => $val['bus_req_doc_item_id'],
                 'teq_req_doc_id' => $val['teq_req_doc_id'],
                 'test_case_description' => null,
@@ -112,7 +116,7 @@ class TechnicalRequirementController extends Controller
         }
 
         //SET TO NOT ACTIVE
-        TeqReqDocItem::whereIn('id',$data['old_trd_item'])->update([
+        TeqReqDocItem::whereIn('id',$postData['old_trd_item'])->update([
             'is_active' => 1
         ]);
   

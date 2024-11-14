@@ -16,6 +16,7 @@ class CreateBusReqDocItemsTable extends Migration
         Schema::create('bus_req_doc_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('bus_req_doc_id')->index();
+            $table->unsignedBigInteger('program_id')->index();
             $table->string('guid')->index()->nullable();
             $table->string('module');
             $table->string('applicable_roles');
@@ -23,6 +24,7 @@ class CreateBusReqDocItemsTable extends Migration
 
             $table->timestamps();
             $table->foreign('bus_req_doc_id')->references('id')->on('bus_req_docs')->onDelete('cascade');
+            $table->foreign('program_id')->references('id')->on('programs')->onDelete('cascade');
         });
     }
 

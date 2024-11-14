@@ -1,6 +1,6 @@
 import { Button } from '@/Components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { Program, UserAcceptance } from '@/types';
+import { PageProps, Program, UserAcceptance } from '@/types';
 import {FC,  useState} from 'react';
 import NewUAModal from './UserAcceptance/NewUAModal';
 import { format, set } from 'date-fns';
@@ -9,6 +9,9 @@ import Hint from '@/Components/Hint';
 import { MailCheckIcon, MailWarningIcon, Pencil, Trash2 } from 'lucide-react';
 import UAFailedEmail from './UAFailedEmail';
 import UASuccessEmail from './UASuccessEmail';
+import useRestriction from '@/Hooks/useRestriction';
+import { usePage } from '@inertiajs/inertia-react';
+import { Page } from '@inertiajs/inertia';
 
 interface Props {
     program:Program;
@@ -22,8 +25,8 @@ const UserAcceptance:FC<Props> = ({program}) => {
     const [showUpdateUa,setShowUpdateUa] = useState(false);
     const {user_acceptances} = program;
     const [selectedUA,setSelectedUA] = useState<UserAcceptance|undefined>();
-
-
+    const {auth} = usePage<Page<PageProps>>().props
+    const {usePcRestriction} = useRestriction()
     const editUa = (ua:UserAcceptance) =>{
         setSelectedUA(ua);
         setShowUpdateUa(true);
@@ -43,7 +46,7 @@ const UserAcceptance:FC<Props> = ({program}) => {
     return (
         <>
             <div className='w-full h-full border rounded-lg flex flex-col gap-y-2.5 p-2.5'>
-                <Button onClick={()=>setShowNewUa(true)} size='sm' className='ml-auto'>
+                <Button onClick={()=>setShowNewUa(true)} size='sm' disabled={!usePcRestriction(auth.user.department)} className='ml-auto'>
                     Add User Acceptance
                 </Button>
                 <Table>

@@ -109,9 +109,9 @@ const generateSubject = (program:Program):string =>{
 
 
 const generateEmail = (program:Program):string=>{
-    if(!program) return "";
+    if(!program.techinical_requirement_document_item ) return "";
 
-    const failedTests = program.techinical_requirement_document.items.filter(item=>item.test_case_status==='failed').reduce((acc,item)=> {
+    const failedTests = program.techinical_requirement_document_item.filter(item=>item.test_case_status==='failed').reduce((acc,item)=> {
         return acc+`
         <tr>
             <td>${item.test_case_id}</td>

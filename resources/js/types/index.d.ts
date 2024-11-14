@@ -69,6 +69,7 @@ export interface Project extends TimeStamps{
     project_coordinators:User[];
     is_archived:0|1;
     programs:Program[];
+    business_requirement_document:BusinessRequirementsDocument;
 }
 
 export interface Department {
@@ -93,12 +94,11 @@ export interface Program extends TimeStamps{
     step_id:number;
     step:Step;
     change_requests:ChangeManagementRequest[];
-
-
     program_programmers:User[];
     program_testers:User[];
-
     business_requirement_document:BusinessRequirementsDocument;
+    business_requirement_document_item?:BusinessRequirementsDocumentItem[];   
+    techinical_requirement_document_item?: TechnicalRequirementsDocumentItem[];
     business_requirement_document_history:BusinessRequirementsDocument[];
     techinical_requirement_document:TechnicalRequirementsDocument;
     program_setup_schedule:ProgramSetupSchedule;
@@ -106,6 +106,11 @@ export interface Program extends TimeStamps{
     user_acceptances:UserAcceptance[]
 } 
 
+export interface ProjectBrd{
+    program_name:string;
+    items:BusinessRequirementsDocumentItem[];    
+
+}
 
 export interface HrmsInfo{
     job_job_title : string;
@@ -157,7 +162,9 @@ export interface BusinessRequirementsDocumentItem{
     module:string;
     applicable_roles:string;
     description:string;
+    program_name?:string
 }
+
 
 export interface TechnicalRequirementsDocument extends TimeStamps{
     id:number;

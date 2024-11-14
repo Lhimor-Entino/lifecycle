@@ -77,6 +77,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('business_requirement')->name('business_requirement.')->group(function(){
         Route::post('/store', [BusinessRequirementController::class,'store'])->name('store');
+
+        Route::post('/createBusReqDocs', [BusinessRequirementController::class,'createBusReqDocs'])->name('createBusReqDocs');
         Route::post('/update/{id}', [BusinessRequirementController::class,'update'])->name('update');
         Route::post('/item/store', [BusinessRequirementController::class,'item_store'])->name('item.store');
         Route::post('/item/destroy/{id}', [BusinessRequirementController::class,'item_destroy'])->name('item.destroy');
@@ -85,11 +87,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('tech_requirement')->name('tech_requirement.')->group(function(){
         Route::post('/store', [TechnicalRequirementController::class,'store'])->name('store');
         Route::post('/update/{id}', [TechnicalRequirementController::class,'update'])->name('update');
-        Route::post('/create_new_trd_test_case/{postData}', [TechnicalRequirementController::class,'create_new_trd_test_case'])->name('create_new_trd_test_case');
+        Route::post('/create_new_trd_test_case', [TechnicalRequirementController::class,'create_new_trd_test_case'])->name('create_new_trd_test_case');
         Route::post('/item/store', [TechnicalRequirementController::class,'item_store'])->name('item.store');
         Route::post('/item/update/{id}', [TechnicalRequirementController::class,'item_update'])->name('item.update');
         Route::post('/item/destroy/{id}', [TechnicalRequirementController::class,'item_destroy'])->name('item.destroy');
-   
+        
     });
 
     Route::prefix('user_acceptance')->name('user_acceptance.')->group(function(){
